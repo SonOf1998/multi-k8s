@@ -19,7 +19,7 @@ function fib(index) {
     a = tmp
   }
 
-  return b
+  return 999
 }
 
 sub.on('message', (channel, message) => {
