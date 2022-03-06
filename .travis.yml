@@ -10,14 +10,14 @@ script:
   - docker run -e CI=true mkis98/react-test npm test
 
 after_success:
-  - docker build -t mkis98/multi-client ./client
+  - docker build -t mkis98/multi-client:v2 ./client
   - docker build -t mkis98/multi-nginx ./nginx
   - docker build -t mkis98/multi-server ./server
   - docker build -t mkis98/multi-worker ./worker
   # login
   - echo "$DOCKER_PW" | docker login -u "$DOCKER_ID" --password-stdin
   # push
-  - docker push mkis98/multi-client
+  - docker push mkis98/multi-client:v2
   - docker push mkis98/multi-nginx
   - docker push mkis98/multi-server
   - docker push mkis98/multi-worker
