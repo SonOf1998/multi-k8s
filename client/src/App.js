@@ -20,7 +20,7 @@ function App() {
             XD
           </a>
           <Link to="/">Home</Link>
-          <Link to="/otherpage">dddddd Page</Link>
+          <Link to="/otherpage">dd Page</Link>
         </header>
         <div>
           <Route exact path="/" component={Fib} />
