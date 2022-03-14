@@ -15,5 +15,7 @@ spec:
       containers:
         - name: client
           image: mkis98/multi-client
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
+          
