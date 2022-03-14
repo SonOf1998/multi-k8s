@@ -2,35 +2,41 @@ language: generic
 sudo: required
 services:
   - docker
-
+env:
+  global:
+    - SHA=$(git rev-parse HEAD)
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
 before_install:
+  - openssl aes-256-cbc -K $encrypted_9f3b5599b056_key -iv $encrypted_9f3b5599b056_iv -in service-account.json.enc -out service-account.json -d
+  - curl https://sdk.cloud.google.com | bash > /dev/null;
+  - source $HOME/google-cloud-sdk/path.bash.inc
+  - gcloud components update kubectl
+  - gcloud auth activate-service-account --key-file service-account.json
+  - gcloud config set project alert-tine-343714
+  - gcloud config set compute/zone europe-central2-a
+  - gcloud container clusters get-credentials testcluster
+  - echo "$DOCKER_PW" | docker login -u "$DOCKER_ID" --password-stdin
   - docker build -t mkis98/react-test -f ./client/Dockerfile.dev ./client
 
 script:
   - docker run -e CI=true mkis98/react-test npm test
 
 after_success:
-  - docker build -t mkis98/multi-client ./client
-  - docker build -t mkis98/multi-nginx ./nginx
-  - docker build -t mkis98/multi-server ./server
-  - docker build -t mkis98/multi-worker ./worker
-  # login
-  - echo "$DOCKER_PW" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker build -t mkis98/multi-client -t mkis98/multi-client:$SHA ./client
+  - docker build -t mkis98/multi-server -t mkis98/multi-server:$SHA ./server
+  - docker build -t mkis98/multi-worker -t mkis98/multi-worker:$SHA ./worker
   # push
   - docker push mkis98/multi-client
-  - docker push mkis98/multi-nginx
   - docker push mkis98/multi-server
   - docker push mkis98/multi-worker
+  - docker push mkis98/multi-client:$SHA
+  - docker push mkis98/multi-server:$SHA
+  - docker push mkis98/multi-worker:$SHA
+
 
 deploy:
-    provider: elasticbeanstalk
-    region: "eu-central-1"
-    app: "multi-docker"
-    env: "Multidocker-env"
-    bucket_name: "elasticbeanstalk-eu-central-1-102606406933"
-    bucket_path: "multi-docker"
-    on:
-        branch: main
-    access_key_id: $AWS_ACCESS_KEY
-    secret_access_key: $AWS_SECRET_KEY
+  provider: script
+  script: bash ./deploy.sh
+  on:
+    branch: main
 
